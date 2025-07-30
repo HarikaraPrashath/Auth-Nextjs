@@ -12,17 +12,13 @@ const createToken = (_id) => {
 
 //Register method
 const registerUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
 
   try {
-    if (!email || !password) {
+    if (!name || !email || !password) {
       return res
         .status(400)
         .json({ success: false, message: "All filed are must be filled" });
-    } else if (!validator.isEmail(email)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or missing email" });
     } else if (
       !validator.isStrongPassword(password, { minLength: 8, minSymbols: 1 })
     ) {
@@ -37,13 +33,13 @@ const registerUser = async (req, res) => {
     if (exists) {
       return res
         .status(400)
-        .json({ success: false, message: "Email is already in use" });
+        .json({ success: false, message: "email is already in use" });
     }
 
     const salt = await bcrypt.genSalt(10); //gen password
     const hashPassword = await bcrypt.hash(password, salt); //actual password combo
 
-    const newUser = new User({ email, password: hashPassword });
+    const newUser = new User({ name, email, password: hashPassword });
     const user = await newUser.save();
 
     const token = createToken(user._id);
@@ -57,7 +53,11 @@ const registerUser = async (req, res) => {
       .json({
         success: true,
         message: "Register Successfully",
-        user: { id: user._id, email: user.email },
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+        },
         token,
       });
   } catch (error) {
@@ -71,18 +71,18 @@ const registerUser = async (req, res) => {
 
 //Login method
 const loginUser = async (req, res) => {
-  const { email, password } = req.body;
+  const { name, password } = req.body;
 
   try {
     //validate input
-    if (!email || !password) {
+    if (!name || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and Password are required",
+        message: "Name and Password are required",
       });
     }
     //check user exist
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ name });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -108,7 +108,8 @@ const loginUser = async (req, res) => {
         success: true,
         message: "Successfully Login",
         user: {
-          id: user._id,
+         id: user._id,
+          name: user.name,
           email: user.email,
         },
         token,
@@ -128,15 +129,14 @@ const forgetPassword = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const token = jwt.sign({ email: user.email }, process.env.SECRET, {
       expiresIn: "15m",
     });
 
-    //show up the reset password UI 
-    const resetUrl = `${process.env.CLIENT_URL}/ResetPassword/${token}`;
+    //show up the reset password UI
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -146,26 +146,27 @@ const forgetPassword = async (req, res) => {
       },
     });
 
-    //Mail structure 
+    //Mail structure
     const mailOptions = {
       from: process.env.MY_GMAIL,
       to: email,
       subject: "Reset Your Password",
       html: `
         <p>Click the button below to reset your password:</p>
-        <a href="${resetUrl}" style="padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+        <a href="${resetUrl}" style="padding: 10px 20px; background: #196A0B ; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
         <p>This link will expire in 15 minutes.</p>
       `,
     };
 
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Reset link sent to email" });
+    res
+      .status(200)
+      .json({ message: "Password reset link has been sent to your email" });
   } catch (error) {
     console.error("Forget password error:", error.message);
     res.status(500).json({ message: "Error sending reset email" });
   }
 };
-
 
 //reset password
 const resetPassword = async (req, res) => {
@@ -179,8 +180,7 @@ const resetPassword = async (req, res) => {
     const decoded = jwt.verify(token, process.env.SECRET);
     const user = await User.findOne({ email: decoded.email });
 
-    if (!user)
-      return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -195,4 +195,11 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, forgetPassword, resetPassword };
+
+
+module.exports = {
+  registerUser,
+  loginUser,
+  forgetPassword,
+  resetPassword,
+};

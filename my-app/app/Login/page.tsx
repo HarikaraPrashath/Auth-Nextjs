@@ -1,104 +1,145 @@
 "use client";
 import { useState } from "react";
-import { useLogin } from "../hook/useLogin";
+import { useLogin } from "../../hook/useLogin";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
-const Login = () => {
-  const { login, error, isLoading } = useLogin();
-  const [email, setEmail] = useState<string>("");
+const Page = () => {
+  const { login, isLoading } = useLogin();
+  const [name, setName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const handleSubmit = async (e: React.FormEvent) => { //you are saying this is TSC
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await login(email, password);
+    const success = await login(name, password);
 
-    if (success) {
+    if (success.error) {
+      alert(success.error);
+    } else if (success.success) {
       alert("Login Your Account Successfully");
       router.push("/");
     }
   };
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Logo & Title */}
-        <div className="text-center mb-6">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="mx-auto text-blue-600 mb-2"
-          >
-            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
-            <circle cx="7" cy="17" r="2" />
-            <path d="M9 17h6" />
-            <circle cx="17" cy="17" r="2" />
-          </svg>
-          <h1 className="text-3xl font-bold text-blue-600">Hippo Cars</h1>
-          <p className="text-gray-500 text-sm">
-            Welcome back! Login to your account
-          </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
-
-          {/* Error Message */}
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-
-          {/* Forgot Password */}
-          <div className="text-right">
-            <a  href="/ForgotPassword" className="text-sm text-blue-600 hover:underline cursor-pointer">
-              Forgot password?
-            </a>
+    <div
+      className="min-h-screen "
+      style={{ backgroundImage: "url('/Images/bg.png')" }}
+    >
+      <div className="grid grid-cols-[30%_70%] min-h-screen b">
+        {/* Left Column */}
+        <div className="">
+          {/* Logo */}
+          <div className="flex items-center justify-center pt-10">
+            <Image
+              src="/Images/logo.png"
+              alt="Logo"
+              width={150}
+              height={50}
+              className="w-48 h-auto"
+            />
           </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 rounded-md text-white font-semibold transition duration-300 ${
-              isLoading
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
-        </form>
+          {/* Footer Text */}
+          <div className="absolute bottom-8 left-8 text-gray-700 text-sm font-semibold">
+            © 2025 MediSync. All rights reserved.
+          </div>
+        </div>
 
-        {/* Signup Link */}
-        <p className="text-center text-gray-600 text-sm mt-6">
-          Don't have an account?{" "}
-          <a href="/SignUp" className="text-blue-600 hover:underline">
-            Sign up
-          </a>
-        </p>
+        {/* Right Column */}
+        <div
+          className="w-full h-full bg-cover bg-center "
+          style={{ backgroundImage: "url('/Images/hero.png')" }}
+        >
+          {/* Login Form */}
+          <div className=" flex flex-col items-center justify-center h-full ml-50 text-white px-6">
+            <h1 className="text-5xl md:text-6xl font-bold mb-2">Welcome</h1>
+            <p className="text-lg mb-8">Sign in to access your EMR Dashboard</p>
+
+            <form
+              onSubmit={handleSubmit}
+              className="rounded-2xl  px-8 py-6 w-full max-w-md  "
+            >
+              {/* Username */}
+              <div className="mb-4">
+                <label className="block mb-1 text-white">Username</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full text-black px-4 py-2 border bg-white border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white"
+                  placeholder="Enter your username"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="mb-4 relative">
+                <label className="block mb-1 text-white">Password</label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2 border bg-white text-black border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white pr-10"
+                  placeholder="Enter your password"
+                />
+                <span
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute top-9 right-4 text-gray-500 cursor-pointer"
+                >
+                  {showPassword ? (
+                    <AiOutlineEye size={20} />
+                  ) : (
+                    < AiOutlineEyeInvisible size={20} />
+                  )}
+                </span>
+              </div>
+
+              {/* Remember Me and Forgot */}
+              <div className="flex justify-between items-center mb-6 text-sm">
+                <label className="flex items-center text-white">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 mr-2 appearance-none border-2 border-white rounded-sm bg-transparent checked:bg-white checked:border-white checked:accent-white focus:outline-none"
+                  />
+                  Remember me
+                </label>
+                <a
+                  href="/forgot-password"
+                  className="text-white hover:underline"
+                >
+                  Forgot Password?
+                </a>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full bg-green-900 hover:bg-green-950 text-white font-semibold py-2 rounded-2xl transition ${
+                  isLoading
+                    ? "bg-blue-300 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-green-700"
+                }`}
+              >
+                {isLoading ? " Go To Dashboard..." : " Go To Dashboard"}
+              </button>
+
+              {/* Already have account */}
+              <p className="text-center text-white text-sm mt-6">
+                Already have not an account?{" "}
+                <a href="/signup" className="text-green-600 hover:underline">
+                  Signup
+                </a>
+              </p>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Page;

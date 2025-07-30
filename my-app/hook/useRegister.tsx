@@ -9,49 +9,51 @@ export const useRegister = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { dispatch } = useAuthContext();
 
-  const register = async (
-    email: string,
-    password: string,
-    confirmPassword: string
-  ) => {
+  const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     setError(null);
 
-    if (password !== confirmPassword) {
+    if (!name || !email || !password) {
       setIsLoading(false);
-      setError("Password do not match");
+      setError("All fields are required");
       return false;
     }
 
+    // send a POST request to the backend
     try {
-      const response = await fetch("http://localhost:5000/api/users/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies in the request
+          // This is important if your server uses cookies for session management
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+          }),
+        }
+      );
       const json: User & { error?: string } = await response.json();
 
       if (!response.ok) {
         setIsLoading(false);
         setError(json.error || "Registration failed");
-        return false
+        return false;
       }
 
+      // Save user to local storage
       localStorage.setItem("user", JSON.stringify(json));
       dispatch({ type: "LOGIN", payload: json });
       setIsLoading(false);
-      return true
-    } catch (error) {
+      return true;
+    } catch {
       setError("Something went wrong");
       setIsLoading(false);
     }
   };
   return { register, isLoading, error };
 };
-
-

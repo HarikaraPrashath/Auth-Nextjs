@@ -1,24 +1,39 @@
-require("dotenv").config()
+require("dotenv").config();
 const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 
-const userRoutes = require("./routes/userRoute")
+const userRoutes = require("./routes/userRoute");
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser()); // Middleware to parse cookies
+
+const allowedOrigins = ["https://next-front-auth.vercel.app"];
 
 app.use(
- cors({
-	 origin:"http://localhost:3000",
-	 methods:["POST","GET","PUT","DELETE"],
-	 allowedHeaders: ["Content-Type"],
-	 credentials:true
- })
-)
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["POST", "GET", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"],
+    credentials: true,
+  })
+);
 
-app.use('/api/users',userRoutes)
+//Identify  backend server deployment
+app.get("/", (req, res) => {
+  res.send("Backend deployed successfully..........");
+});
+
+app.use("/api/users", userRoutes);
 
 //DB connection
 const PORT = process.env.PORT || 5000;
@@ -33,4 +48,4 @@ mongoose
   })
   .catch((error) => {
     console.error(`Database connection failed:`, error.message);
-  });;
+  });
